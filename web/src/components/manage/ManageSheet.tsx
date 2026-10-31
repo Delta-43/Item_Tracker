@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useI18n } from '@/lib/i18n'
 import type { DeskState } from '@/lib/types'
 import { ItemsTab } from './ItemsTab'
+import { RosterTab } from './RosterTab'
 
 interface ManageSheetProps {
   open: boolean
@@ -24,9 +25,13 @@ export function ManageSheet({ open, onOpenChange, state, onChanged }: ManageShee
         <Tabs defaultValue="items" className="min-h-0 flex-1 overflow-y-auto p-4">
           <TabsList>
             <TabsTrigger value="items">{t('items.title')}</TabsTrigger>
+            <TabsTrigger value="roster">{t('roster.title')}</TabsTrigger>
           </TabsList>
           <TabsContent value="items" className="pt-4">
             <ItemsTab items={state.items} onChanged={onChanged} />
+          </TabsContent>
+          <TabsContent value="roster" className="pt-4">
+            <RosterTab borrowers={state.borrowers} items={state.items} onChanged={onChanged} />
           </TabsContent>
         </Tabs>
       </SheetContent>

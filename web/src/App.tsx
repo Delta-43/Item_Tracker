@@ -177,7 +177,7 @@ function Desk({ state }: { state: DeskState }) {
 
   return (
     <div className="flex h-svh flex-col">
-      <Header settings={state.settings} onManage={() => setManageOpen(true)} />
+      <Header settings={state.settings} onManage={() => setManageOpen(true)} onChanged={refresh} />
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(22rem,26rem)]">
         <main className="flex min-h-0 flex-col gap-4 p-6">
           {state.items.length === 0 ? (

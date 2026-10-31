@@ -1,9 +1,10 @@
-import { Boxes, UserRound } from 'lucide-react'
+import { Boxes } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/lib/i18n'
 import type { Settings } from '@/lib/types'
+import { VolunteerField } from './VolunteerField'
 
-export function Header({ settings, onManage }: { settings: Settings; onManage: () => void }) {
+export function Header({ settings, onManage, onChanged }: { settings: Settings; onManage: () => void; onChanged: () => void }) {
   const { t } = useI18n()
   const labels = settings.labels[settings.language]
   return (
@@ -13,16 +14,7 @@ export function Header({ settings, onManage }: { settings: Settings; onManage: (
       )}
       <h1 className="text-lg font-semibold tracking-[0.12em] uppercase">{labels.desk}</h1>
       <div className="flex-1" />
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <UserRound className="size-4" aria-hidden />
-        {settings.volunteer ? (
-          <span>
-            {t('header.onDuty')} <span className="font-medium text-foreground">{settings.volunteer}</span>
-          </span>
-        ) : (
-          <span>{t('header.nobodyOnDuty')}</span>
-        )}
-      </div>
+      <VolunteerField key={settings.volunteer} settings={settings} onChanged={onChanged} />
       <Button variant="outline" onClick={onManage}>
         <Boxes aria-hidden />
         {t('header.manage')}
