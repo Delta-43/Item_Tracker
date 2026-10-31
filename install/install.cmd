@@ -27,7 +27,7 @@ if not exist "%HOME_DIR%" mkdir "%HOME_DIR%"
   echo   item-tracker:
   echo     image: %IMAGE%
   echo     container_name: item-tracker
-  echo     restart: unless-stopped
+  echo     restart: always
   echo     ports:
   echo       - "127.0.0.1:4242:4242"
   echo     volumes:

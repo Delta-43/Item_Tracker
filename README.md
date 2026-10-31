@@ -198,7 +198,7 @@ You need [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Wind
 **Any system, one command** in a terminal (PowerShell, Command Prompt, macOS or Linux):
 
 ```sh
-docker run -d --name item-tracker --restart unless-stopped -p 127.0.0.1:4242:4242 -v itemtracker_item-tracker-data:/data ghcr.io/delta-43/item_tracker:latest
+docker run -d --name item-tracker --restart always -p 127.0.0.1:4242:4242 -v itemtracker_item-tracker-data:/data ghcr.io/delta-43/item_tracker:latest
 ```
 
 **Docker Compose:** download [`compose.yaml`](compose.yaml) into a folder, and run `docker compose up -d` in that folder.
