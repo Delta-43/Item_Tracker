@@ -168,14 +168,21 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
             <span className="line-clamp-2 text-base leading-tight font-semibold text-balance @[11rem]:text-lg" title={loan.borrower_name}>
               {loan.borrower_name}
             </span>
-            <span className={cn('mt-1 block text-sm', status === 'overdue' ? 'font-medium text-navy' : status === 'due' ? 'text-amber' : 'text-mist')}>
-              {duration}
-              {' · '}
-              {status === 'overdue'
-                ? t('seat.overdue')
-                : status === 'due' && due
-                  ? t('seat.dueAt', { time: formatClock(due, locale) })
-                  : t('seat.since', { time: formatClock(loan.lent_at, locale) })}
+            {/* Breaks only between the duration and the time, never inside either. */}
+            <span className={cn('mt-1 flex flex-wrap gap-x-1 text-sm', status === 'overdue' ? 'font-medium text-navy' : status === 'due' ? 'text-amber' : 'text-mist')}>
+              <span className="whitespace-nowrap">{duration} ·</span>
+              <span className="whitespace-nowrap">
+                {status === 'overdue' ? (
+                  t('seat.overdue')
+                ) : status === 'due' && due ? (
+                  t('seat.dueAt', { time: formatClock(due, locale) })
+                ) : (
+                  <>
+                    <span className="hidden @[11rem]:inline">{t('seat.since', { time: formatClock(loan.lent_at, locale) })}</span>
+                    <span className="@[11rem]:hidden">{formatClock(loan.lent_at, locale)}</span>
+                  </>
+                )}
+              </span>
             </span>
           </>
         ) : (

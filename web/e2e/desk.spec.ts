@@ -116,8 +116,12 @@ test('Enter does nothing until a borrower is chosen deliberately', async ({ page
   // cmdk highlights the first roster row on its own; that must not arm the lend.
   await expect(page.getByRole('button', { name: `Lend card ${item.label}`, exact: true })).toBeDisabled()
   await page.keyboard.press('Enter')
+  // Clicking into the search box is not a pick either.
+  await page.getByPlaceholder('Type a name…').click()
+  await page.keyboard.press('Enter')
   await page.waitForTimeout(300)
   await expect(page.getByRole('button', { name: `Card ${item.label}, free` })).toBeVisible()
+  await expect(page.getByRole('button', { name: `Lend card ${item.label}`, exact: true })).toBeDisabled()
 
   // An arrow key is a deliberate pick: now Enter lends to the highlighted person.
   await page.keyboard.press('ArrowDown')

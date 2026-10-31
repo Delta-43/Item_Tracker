@@ -156,8 +156,9 @@ function LendForm({ item, items, borrowers, busy, onLend, onClose }: ActionPanel
   const [query, setQuery] = useState('')
   const [chosen, setChosen] = useState<string>('')
   // cmdk highlights the first row by itself. Nothing counts as picked until
-  // the volunteer types, uses the arrow keys or clicks, so a scan followed by
-  // Enter can never lend to whoever happens to be first on the roster.
+  // the volunteer types or uses the arrow keys (clicking a name lends
+  // directly), so a scan followed by Enter can never lend to whoever happens
+  // to be first on the roster.
   const [touched, setTouched] = useState(false)
   const armed = touched || query.trim() !== ''
 
@@ -190,7 +191,6 @@ function LendForm({ item, items, borrowers, busy, onLend, onClose }: ActionPanel
             e.stopPropagation()
           }
         }}
-        onPointerDown={() => setTouched(true)}
       >
         <CommandInput autoFocus value={query} onValueChange={setQuery} placeholder={t('panel.search')} />
         <CommandList className="max-h-none min-h-[6rem]">
@@ -203,7 +203,7 @@ function LendForm({ item, items, borrowers, busy, onLend, onClose }: ActionPanel
                 value={String(b.id)}
                 disabled={busy || has !== undefined}
                 onSelect={() => onLend(item, b)}
-                className="justify-between text-base"
+                className={cn('justify-between text-base', !armed && 'data-selected:bg-transparent')}
               >
                 <span className="truncate">{b.name}</span>
                 {has !== undefined && <span className="shrink-0 text-xs text-mist">{t('panel.hasItem', { label: has })}</span>}
