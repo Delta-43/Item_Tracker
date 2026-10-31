@@ -90,7 +90,7 @@ function ItemRow({ item, onChanged }: { item: Item; onChanged: () => void }) {
     return (
       <li className="flex items-center gap-2 py-2">
         <Input aria-label={t('items.addLabel')} value={label} onChange={(e) => setLabel(e.target.value)} className="w-20" />
-        <Input aria-label={t('items.addCode')} value={code} onChange={(e) => setCode(e.target.value)} className="flex-1 font-mono text-sm" />
+        <Input aria-label={t('items.addCode')} value={code} onChange={(e) => setCode(e.target.value)} className="flex-1 text-sm tabular-nums tracking-wide" />
         <Button size="icon-sm" onClick={() => run(() => api.updateItem(item.id, { label, code }))} aria-label={t('items.save')}>
           <Check aria-hidden />
         </Button>
@@ -105,7 +105,7 @@ function ItemRow({ item, onChanged }: { item: Item; onChanged: () => void }) {
     <li className="flex items-center gap-3 py-2">
       <span className="w-14 text-2xl font-bold tracking-[-0.03em]">{item.label}</span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-mono text-sm text-mist" title={item.code}>
+        <span className="block truncate text-sm tabular-nums tracking-wide text-mist" title={item.code}>
           {item.code}
         </span>
         {item.loan && <span className="block truncate text-sm">{t('items.out', { name: item.loan.borrower_name })}</span>}

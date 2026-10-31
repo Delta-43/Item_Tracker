@@ -13,8 +13,8 @@ test('paste a roster, remove someone, and they can no longer borrow', async ({ p
   await openRoster(page)
 
   await page.getByRole('textbox', { name: 'Import students' }).fill('Celina Wymyślona\nDawid Zmyślony\n\nCelina Wymyślona\n')
-  await expect(page.getByText('3 names found')).toBeVisible()
-  await page.getByRole('button', { name: 'Import 3 names' }).click()
+  await expect(page.getByText('Names found: 3')).toBeVisible()
+  await page.getByRole('button', { name: 'Import (3)' }).click()
   await expect(page.getByText(/Added 2, already there 0/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Remove Dawid Zmyślony from the roster' }).click()
@@ -36,8 +36,8 @@ test('import a semicolon CSV with first and last name columns', async ({ page })
     mimeType: 'text/csv',
     buffer: Buffer.from('Imię;Nazwisko;Grupa\nEwa;Fikcyjna;A\nFranek;Testowy;B\n'),
   })
-  await expect(page.getByText('2 names found')).toBeVisible()
-  await page.getByRole('button', { name: 'Import 2 names' }).click()
+  await expect(page.getByText('Names found: 2')).toBeVisible()
+  await page.getByRole('button', { name: 'Import (2)' }).click()
   await expect(page.getByText(/Added 2/)).toBeVisible()
   await page.getByPlaceholder('Type a name…').last().fill('franek')
   await expect(page.getByText('Franek Testowy')).toBeVisible()

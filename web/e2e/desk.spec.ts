@@ -107,3 +107,23 @@ test('cross-site requests are refused', async ({ request }) => {
   const res = await request.post('/api/items', { data: { label: 'evil' }, headers: { Origin: 'https://evil.example' } })
   expect(res.status()).toBe(403)
 })
+
+test('Enter does nothing until a borrower is chosen deliberately', async ({ page, request }) => {
+  const item = await makeItem(request)
+  await page.goto('/')
+  await scan(page, item.code)
+  await expect(page.getByRole('heading', { name: `Card ${item.label}` })).toBeVisible()
+  // cmdk highlights the first roster row on its own; that must not arm the lend.
+  await expect(page.getByRole('button', { name: `Lend card ${item.label}`, exact: true })).toBeDisabled()
+  await page.keyboard.press('Enter')
+  // Clicking into the search box is not a pick either.
+  await page.getByPlaceholder('Type a name…').click()
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(300)
+  await expect(page.getByRole('button', { name: `Card ${item.label}, free` })).toBeVisible()
+  await expect(page.getByRole('button', { name: `Lend card ${item.label}`, exact: true })).toBeDisabled()
+
+  // An arrow key is a deliberate pick: now Enter lends to the highlighted person.
+  await page.keyboard.press('ArrowDown')
+  await expect(page.getByRole('button', { name: new RegExp(`^Lend card ${item.label} to `) })).toBeEnabled()
+})

@@ -36,3 +36,6 @@ Thumbs.db
 .env.*
 *.local
 *.log
+
+# Working notes from the animation audit (improve-animations skill)
+/plans/

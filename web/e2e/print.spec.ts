@@ -18,7 +18,7 @@ test('the print sheet holds true-size 1.25 in codes for the chosen cards', async
   await page.getByRole('button', { name: a.label, exact: true }).click()
   await page.getByRole('button', { name: b.label, exact: true }).click()
   await page.getByLabel('Copies of each').fill('2')
-  await expect(page.getByText('4 stickers on 1 A4 pages')).toBeVisible()
+  await expect(page.getByText('Stickers: 4 · A4 pages: 1')).toBeVisible()
 
   await page.getByRole('button', { name: 'Print sheet' }).click()
   expect(await page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1)

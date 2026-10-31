@@ -19,7 +19,7 @@ export function ActivityStrip({ recent }: { recent: Activity[] }) {
               <time dateTime={a.at} className="text-mist">
                 {formatClock(a.at, locale)}
               </time>
-              <Icon className={a.kind === 'lent' ? 'size-4 text-teal' : 'size-4 text-mist'} aria-hidden />
+              <Icon strokeWidth={1.5} className={a.kind === 'lent' ? 'size-4 text-teal' : 'size-4 text-mist'} aria-hidden />
               <span>
                 <span className="font-semibold">
                   {t('panel.itemTitle', { label: a.loan.item_label })}

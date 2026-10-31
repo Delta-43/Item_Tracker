@@ -14,10 +14,13 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { stateKey, useDeskState, useNow } from '@/hooks/useDesk'
 import { api, ApiError } from '@/lib/api'
-import { useI18n } from '@/lib/i18n'
+import { dictionaries, useI18n } from '@/lib/i18n'
 import { I18nProvider } from '@/lib/I18nProvider'
 import { formatDuration } from '@/lib/status'
 import type { Borrower, Condition, DeskState, Item } from '@/lib/types'
+
+/** Before settings load (or when the server is down) the desk's language is unknown; follow the browser. */
+const fallbackMessages = dictionaries[navigator.language.toLowerCase().startsWith('pl') ? 'pl' : 'en']
 
 export default function App() {
   const { data, error } = useDeskState()
@@ -27,11 +30,11 @@ export default function App() {
         {error ? (
           <>
             <PlugZap className="size-8 text-amber" aria-hidden />
-            <h1 className="text-2xl font-semibold">Can’t reach the desk server</h1>
-            <p className="max-w-[44ch] text-mist">Check that Docker Desktop is running; this page reconnects by itself.</p>
+            <h1 className="text-2xl font-semibold">{fallbackMessages['app.offline']}</h1>
+            <p className="max-w-[44ch] text-mist">{fallbackMessages['app.offlineHint']}</p>
           </>
         ) : (
-          <Loader2 className="size-8 animate-spin text-teal" aria-label="Loading" />
+          <Loader2 className="size-8 animate-spin text-teal" aria-label={fallbackMessages['app.loading']} />
         )}
       </main>
     )
@@ -201,7 +204,7 @@ function Desk({ state }: { state: DeskState }) {
   return (
     <div className="flex h-svh flex-col">
       <Header settings={state.settings} onManage={() => setManageOpen(true)} onHistory={() => setHistoryOpen(true)} onChanged={refresh} />
-      <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(22rem,26rem)]">
+      <div className="grid min-h-0 flex-1 grid-cols-[1fr_clamp(18rem,28vw,26rem)]">
         <main className="flex min-h-0 flex-col gap-4 p-6">
           {state.items.length === 0 ? (
             <EmptyDesk onManage={() => setManageOpen(true)} onChanged={refresh} />
@@ -219,10 +222,11 @@ function Desk({ state }: { state: DeskState }) {
             </>
           )}
         </main>
-        <aside className="flex min-h-0 flex-col gap-6 border-l bg-navy-deep/40 p-6">
+        <aside className="flex min-h-0 flex-col gap-5 overflow-y-auto border-l bg-navy-deep/40 p-5">
           <CameraPanel onCode={handleScan} />
           <ActionPanel
             item={selected}
+            settings={state.settings}
             items={state.items}
             borrowers={state.borrowers}
             now={now}
