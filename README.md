@@ -26,7 +26,7 @@ The desk only listens on `127.0.0.1`, so other devices on the network can't reac
 
 - [x] Project skeleton: Go server, React app, Docker image, CI
 - [x] Items, borrowers and loans stored in SQLite, with a JSON API and live updates
-- [ ] The desk: live item map, browser QR scanning, lend and return
+- [x] The desk: live item map, browser QR scanning, lend and return
 - [ ] Borrower roster import (only roster names can borrow) and the volunteer on duty
 - [ ] Loan history with CSV export, overdue highlighting, lost/damaged items
 - [ ] Printable QR sheets (1.25 in squares on A4), configurable labels, Polish translation
@@ -53,6 +53,16 @@ The server listens on `:4242`. For live frontend reloading, keep the Go server r
 | `ITEMTRACKER_ALLOWED_HOSTS` | _(empty)_ | Extra host names allowed besides `localhost`, comma-separated |
 
 Build the image yourself with `docker build -t item-tracker .`.
+
+Tests:
+
+```bash
+go test ./...                       # server
+cd web && npm test                  # frontend units
+npx playwright test                 # end to end; needs web/dist and bin/itemtracker built first
+```
+
+The end-to-end suite gives Chromium a fake camera that plays a generated QR code video, so the whole scan path (camera, decoder, lend, return) is exercised without hardware.
 
 ## Acknowledgements
 
