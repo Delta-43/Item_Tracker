@@ -4,7 +4,7 @@ A self-hosted lending desk. Stick a QR code on each item you lend out (access ca
 
 It runs on one computer with one Docker command. No accounts, no cloud, no RFID reader, no internet connection needed at the desk, and all data stays on that computer.
 
-> **Status:** early development. The skeleton is in place; the desk is being built feature by feature (see [Roadmap](#roadmap)).
+> **Status:** feature-complete for its first deployment; being tested at the desk before a 1.0 release.
 
 ## Quick start (Windows)
 
@@ -22,6 +22,16 @@ To stop the desk, run `docker compose down`. Your data stays in the `item-tracke
 
 The desk only listens on `127.0.0.1`, so other devices on the network can't reach it.
 
+## First-day setup
+
+1. **Add your items.** On an empty desk, *Add cards 1 to 10* creates ten numbered items. Use *Cards & students › Cards* to rename them or set a QR value; values printed by an earlier system (for example `carddesk:4242`) keep working.
+2. **Import the roster.** *Cards & students › Roster*: paste one name per line, or choose a CSV with a name column (or first and last name columns). Only people on the roster can borrow.
+3. **Print the stickers.** *Cards & students › Print* prints each QR code exactly 1.25 in (31.75 mm) square on A4. In the print dialog choose **100% / Actual size** and turn off "Fit to page", then check the 50 mm line at the bottom with a ruler before cutting.
+4. **Set the rules.** *Cards & students › Desk*: overdue time limit, closing time, language (English or Polish), logo, and what the items and borrowers are called.
+5. **Put your name in the header** (click *Nobody on duty*). It is recorded with every lend and return.
+
+At the desk: scan a card that is out and it comes back (with Undo); scan a free card, type part of a name, press Enter. Clicking a card works the same if a sticker won't scan. *History* shows every loan and exports CSV for Excel; *Desk › Download backup* saves a copy of the database.
+
 ## Roadmap
 
 - [x] Project skeleton: Go server, React app, Docker image, CI
@@ -29,7 +39,7 @@ The desk only listens on `127.0.0.1`, so other devices on the network can't reac
 - [x] The desk: live item map, browser QR scanning, lend and return
 - [x] Borrower roster import (only roster names can borrow) and the volunteer on duty
 - [x] Loan history with CSV export, overdue highlighting, lost/damaged items, database backup
-- [ ] Printable QR sheets (1.25 in squares on A4), configurable labels, Polish translation
+- [x] Printable QR sheets (1.25 in squares on A4), configurable labels, Polish translation
 
 ## Privacy
 

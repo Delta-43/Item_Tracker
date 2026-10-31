@@ -75,7 +75,7 @@ test('desk settings save and the backup downloads', async ({ page, request }) =>
   await page.getByRole('tab', { name: 'Desk' }).click()
   await page.getByLabel('Time limit').fill('2.5')
   await page.getByLabel('Closing time').fill('19:30')
-  await page.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByText('Desk settings saved')).toBeVisible()
   const settings = await (await request.get('/api/settings')).json()
   expect(settings.overdue_minutes).toBe(150)

@@ -1,0 +1,85 @@
+/*
+ * QR sticker sheet. Physical units throughout: every code is exactly
+ * 1.25 in (31.75 mm) square including its quiet zone, five per row on A4.
+ */
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 31.75mm);
+  column-gap: 6mm;
+  row-gap: 4mm;
+  color: #000;
+}
+
+/* On screen the preview wraps to the drawer's width; the printed sheet keeps 5 columns. */
+.sticker-grid-preview {
+  grid-template-columns: repeat(auto-fill, 31.75mm);
+}
+
+.sticker {
+  margin: 0;
+  break-inside: avoid;
+}
+
+.sticker-code {
+  width: 31.75mm;
+  height: 31.75mm;
+  background: #fff;
+  /* Cutting guide drawn outside the square so it never shrinks the code. */
+  outline: 0.25mm dashed #9aa3b5;
+}
+
+.sticker-code svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sticker figcaption {
+  height: 5mm;
+  padding-top: 1mm;
+  text-align: center;
+  font: 600 3mm/1 'Jost Variable', system-ui, sans-serif;
+}
+
+.print-sheet {
+  display: none;
+}
+
+.print-ruler {
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  margin-top: 8mm;
+  font: 400 3mm/1.3 'Jost Variable', system-ui, sans-serif;
+  color: #000;
+  break-inside: avoid;
+}
+
+.print-ruler-line {
+  flex: none;
+  width: 50mm;
+  height: 2mm;
+  border: 0.3mm solid #000;
+  border-top: 0;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Only the sheet prints: the desk, open drawers and toasts are all hidden. */
+  body > *:not(.print-sheet) {
+    display: none !important;
+  }
+
+  .print-sheet {
+    display: block;
+  }
+}
