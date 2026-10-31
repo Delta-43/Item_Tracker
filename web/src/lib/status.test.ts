@@ -7,7 +7,7 @@ const settings = (over: Partial<Settings> = {}): Settings => ({
   labels: {} as Settings['labels'],
   language: 'en',
   branding: 'none',
-  volunteer: '',
+  volunteers: [],
   overdue_minutes: 180,
   closing_time: '',
   ...over,

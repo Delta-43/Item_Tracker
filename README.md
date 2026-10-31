@@ -28,7 +28,7 @@ The desk only listens on `127.0.0.1`, so other devices on the network can't reac
 2. **Import the roster.** *Cards & students › Roster*: paste one name per line, or choose a CSV with a name column (or first and last name columns). Only people on the roster can borrow.
 3. **Print the stickers.** *Cards & students › Print* prints each QR code exactly 1.25 in (31.75 mm) square on A4. In the print dialog choose **100% / Actual size** and turn off "Fit to page", then check the 50 mm line at the bottom with a ruler before cutting.
 4. **Set the rules.** *Cards & students › Desk*: overdue time limit, closing time, language (English or Polish), logo, and what the items and borrowers are called.
-5. **Put your name in the header** (click *Nobody on duty*). It is recorded with every lend and return.
+5. **Put the team on duty in the header** (click *Nobody on duty*, then the add button for more). Up to five volunteers can be on duty; everyone listed is recorded with every lend and return.
 
 At the desk: scan a card that is out and it comes back (with Undo); scan a free card, type part of a name, press Enter. Clicking a card works the same if a sticker won't scan. *History* shows every loan and exports CSV for Excel; *Desk › Download backup* saves a copy of the database.
 
@@ -37,7 +37,7 @@ At the desk: scan a card that is out and it comes back (with Undo); scan a free 
 - [x] Project skeleton: Go server, React app, Docker image, CI
 - [x] Items, borrowers and loans stored in SQLite, with a JSON API and live updates
 - [x] The desk: live item map, browser QR scanning, lend and return
-- [x] Borrower roster import (only roster names can borrow) and the volunteer on duty
+- [x] Borrower roster import (only roster names can borrow) and the team on duty (up to five)
 - [x] Loan history with CSV export, overdue highlighting, lost/damaged items, database backup
 - [x] Printable QR sheets (1.25 in squares on A4), configurable labels, Polish translation
 

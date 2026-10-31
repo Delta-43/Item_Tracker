@@ -259,13 +259,13 @@ func TestSettingsAndBackup(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	st, _ := f.s.Settings(ctx)
-	if st.OverdueMinutes != 180 || st.Labels["en"].Item != "Card" {
+	if st.OverdueMinutes != 180 || st.Labels["en"].Item != "Card" || st.Volunteers == nil {
 		t.Fatalf("defaults: %+v", st)
 	}
-	st.Volunteer = "  Kasia  M. "
+	st.Volunteers = []string{"  Kasia  M. ", "", "Piotr", "kasia m."}
 	st.ClosingTime = "19:00"
 	saved, err := f.s.SaveSettings(ctx, st)
-	if err != nil || saved.Volunteer != "Kasia M." || saved.ClosingTime != "19:00" {
+	if err != nil || saved.OnDuty() != "Kasia M., Piotr" || saved.ClosingTime != "19:00" {
 		t.Fatalf("save: %+v %v", saved, err)
 	}
 	st.ClosingTime = "25:00"
@@ -282,7 +282,26 @@ func TestSettingsAndBackup(t *testing.T) {
 	}
 	defer copyStore.Close()
 	got, _ := copyStore.Settings(ctx)
-	if got.Volunteer != "Kasia M." {
+	if got.OnDuty() != "Kasia M., Piotr" {
 		t.Fatalf("backup lost settings: %+v", got)
+	}
+}
+
+func TestVolunteersLimitAndLegacyMigration(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	st, _ := f.s.Settings(ctx)
+	st.Volunteers = []string{"A", "B", "C", "D", "E", "F"}
+	_, err := f.s.SaveSettings(ctx, st)
+	wantCode(t, err, "too_many_volunteers")
+
+	// A desk saved before teams existed stored one "volunteer" string.
+	if _, err := f.s.db.ExecContext(ctx, `INSERT INTO settings (id, value) VALUES (1, '{"language":"en","branding":"none","volunteer":"Ola Dawna","overdue_minutes":60}')
+		ON CONFLICT (id) DO UPDATE SET value = excluded.value`); err != nil {
+		t.Fatal(err)
+	}
+	got, err := f.s.Settings(ctx)
+	if err != nil || len(got.Volunteers) != 1 || got.Volunteers[0] != "Ola Dawna" || got.LegacyVolunteer != "" {
+		t.Fatalf("legacy migration: %+v %v", got, err)
 	}
 }

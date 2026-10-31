@@ -44,7 +44,7 @@ export interface Settings {
   labels: Record<Language, Labels>
   language: Language
   branding: '42warsaw' | 'none'
-  volunteer: string
+  volunteers: string[]
   overdue_minutes: number
   closing_time: string
 }

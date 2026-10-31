@@ -63,7 +63,7 @@ func TestDeskFlow(t *testing.T) {
 
 	var settings store.Settings
 	c.call("GET", "/api/settings", nil, 200, &settings)
-	settings.Volunteer = "Kasia M."
+	settings.Volunteers = []string{"Kasia M.", "Piotr"}
 	c.call("PUT", "/api/settings", settings, 200, &settings)
 
 	var item store.Item
@@ -83,7 +83,7 @@ func TestDeskFlow(t *testing.T) {
 	}
 	var loan store.Loan
 	c.call("POST", "/api/loans", map[string]int64{"item_id": item.ID, "borrower_id": roster[0].ID}, 201, &loan)
-	if loan.LentBy != "Kasia M." {
+	if loan.LentBy != "Kasia M., Piotr" {
 		t.Fatalf("volunteer not recorded: %+v", loan)
 	}
 	var apiErr store.Error
@@ -99,7 +99,7 @@ func TestDeskFlow(t *testing.T) {
 	}
 
 	c.call("POST", "/api/scan", map[string]string{"code": "carddesk:3"}, 200, &scan)
-	if scan.Action != "returned" || scan.Loan == nil || scan.Loan.ReturnedBy != "Kasia M." {
+	if scan.Action != "returned" || scan.Loan == nil || scan.Loan.ReturnedBy != "Kasia M., Piotr" {
 		t.Fatalf("scan lent: %+v", scan)
 	}
 	c.call("POST", "/api/loans/"+itoa(loan.ID)+"/undo-return", nil, 200, &loan)

@@ -77,13 +77,13 @@ func (a *api) state(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, st)
 }
 
-// volunteer is whoever is on duty when the action happens.
+// volunteer is the team on duty when the action happens.
 func (a *api) volunteer(r *http.Request) string {
 	st, err := a.store.Settings(r.Context())
 	if err != nil {
 		return ""
 	}
-	return st.Volunteer
+	return st.OnDuty()
 }
 
 func (a *api) scan(w http.ResponseWriter, r *http.Request) {
