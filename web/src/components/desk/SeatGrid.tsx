@@ -151,7 +151,7 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
       aria-label={aria}
       aria-pressed={selected}
       className={cn(
-        'motion-press @container relative flex min-h-0 min-w-0 flex-col rounded-xl p-3 text-left @[11rem]:p-4',
+        'motion-press @container relative flex min-h-0 min-w-0 flex-col rounded-xl p-3 text-left xl:p-4',
         'outline-3 outline-offset-3 outline-transparent focus-visible:outline-teal',
         seatStyles[status],
         selected && 'outline-white focus-visible:outline-white',
@@ -165,7 +165,7 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
           <span className="block font-semibold">{t(item.condition === 'lost' ? 'seat.lost' : 'seat.damaged')}</span>
         ) : loan ? (
           <>
-            <span className="line-clamp-2 text-base leading-tight font-semibold text-balance @[11rem]:text-lg" title={loan.borrower_name}>
+            <span className="line-clamp-2 text-base leading-tight font-semibold text-balance @[9rem]:text-lg" title={loan.borrower_name}>
               {loan.borrower_name}
             </span>
             {/* Breaks only between the duration and the time, never inside either. */}
@@ -178,8 +178,8 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
                   t('seat.dueAt', { time: formatClock(due, locale) })
                 ) : (
                   <>
-                    <span className="hidden @[11rem]:inline">{t('seat.since', { time: formatClock(loan.lent_at, locale) })}</span>
-                    <span className="@[11rem]:hidden">{formatClock(loan.lent_at, locale)}</span>
+                    <span className="hidden @[9rem]:inline">{t('seat.since', { time: formatClock(loan.lent_at, locale) })}</span>
+                    <span className="@[9rem]:hidden">{formatClock(loan.lent_at, locale)}</span>
                   </>
                 )}
               </span>
@@ -196,7 +196,7 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
 /** All five state icons stay mounted and cross-fade, so a state change reads as a change, not a jump. */
 function StatusIcon({ status }: { status: SeatStatus }) {
   return (
-    <span aria-hidden className="absolute top-3 right-3 size-5 @[11rem]:top-4 @[11rem]:right-4">
+    <span aria-hidden className="absolute top-3 right-3 size-5 @[9rem]:top-4 @[9rem]:right-4">
       {statuses.map((s) => {
         const Icon = icons[s]
         return (
