@@ -28,7 +28,7 @@ func do(t *testing.T, h http.Handler, method, target, host, origin string) *http
 }
 
 func TestHealth(t *testing.T) {
-	h := New(Config{Version: "test"}, testUI())
+	h := New(Config{Version: "test"}, testStore(t), testUI())
 	rec := do(t, h, http.MethodGet, "/api/health", "localhost:4242", "")
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"version":"test"`) {
 		t.Fatalf("health: %d %s", rec.Code, rec.Body)
@@ -36,7 +36,7 @@ func TestHealth(t *testing.T) {
 }
 
 func TestHostGuard(t *testing.T) {
-	h := New(Config{AllowedHosts: []string{"desk.lan"}}, testUI())
+	h := New(Config{AllowedHosts: []string{"desk.lan"}}, testStore(t), testUI())
 	for _, host := range []string{"localhost:4242", "127.0.0.1:4242", "[::1]:4242", "desk.lan:4242"} {
 		if rec := do(t, h, http.MethodGet, "/api/health", host, ""); rec.Code != http.StatusOK {
 			t.Errorf("host %s: got %d", host, rec.Code)
@@ -48,7 +48,7 @@ func TestHostGuard(t *testing.T) {
 }
 
 func TestOriginGuard(t *testing.T) {
-	h := New(Config{}, testUI())
+	h := New(Config{}, testStore(t), testUI())
 	if rec := do(t, h, http.MethodPost, "/api/nothing", "localhost:4242", "https://evil.example"); rec.Code != http.StatusForbidden {
 		t.Errorf("cross-site post: got %d", rec.Code)
 	}
@@ -58,7 +58,7 @@ func TestOriginGuard(t *testing.T) {
 }
 
 func TestSPA(t *testing.T) {
-	h := New(Config{}, testUI())
+	h := New(Config{}, testStore(t), testUI())
 	if rec := do(t, h, http.MethodGet, "/history", "localhost", ""); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "desk") {
 		t.Errorf("app route should serve index.html: %d", rec.Code)
 	}
@@ -72,7 +72,7 @@ func TestSPA(t *testing.T) {
 }
 
 func TestSPAMissingBuild(t *testing.T) {
-	h := New(Config{}, fstest.MapFS{})
+	h := New(Config{}, testStore(t), fstest.MapFS{})
 	if rec := do(t, h, http.MethodGet, "/", "localhost", ""); rec.Code != http.StatusServiceUnavailable {
 		t.Errorf("missing build: got %d", rec.Code)
 	}

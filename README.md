@@ -25,7 +25,7 @@ The desk only listens on `127.0.0.1`, so other devices on the network can't reac
 ## Roadmap
 
 - [x] Project skeleton: Go server, React app, Docker image, CI
-- [ ] Items, borrowers and loans stored in SQLite
+- [x] Items, borrowers and loans stored in SQLite, with a JSON API and live updates
 - [ ] The desk: live item map, browser QR scanning, lend and return
 - [ ] Borrower roster import (only roster names can borrow) and the volunteer on duty
 - [ ] Loan history with CSV export, overdue highlighting, lost/damaged items
