@@ -1,6 +1,10 @@
 # Item Tracker: one container, reachable only from this computer.
 # Start:  docker compose up -d     Open: http://localhost:4242
-# Stop:   docker compose down      (your data stays in the item-tracker-data volume)
+# Update: docker compose pull && docker compose up -d
+# Stop:   docker compose down      (your data stays in the itemtracker_item-tracker-data volume)
+# The project name keeps the volume the same whatever folder this file is in,
+# and matches install/install.cmd, so both find the same desk.
+name: itemtracker
 services:
   item-tracker:
     image: ghcr.io/delta-43/item_tracker:latest
