@@ -8,6 +8,7 @@ import { CameraPanel } from '@/components/desk/CameraPanel'
 import { EmptyDesk } from '@/components/desk/EmptyDesk'
 import { Header } from '@/components/desk/Header'
 import { Legend, SeatGrid } from '@/components/desk/SeatGrid'
+import { HistorySheet } from '@/components/history/HistorySheet'
 import { ManageSheet } from '@/components/manage/ManageSheet'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -16,7 +17,7 @@ import { api, ApiError } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
 import { I18nProvider } from '@/lib/I18nProvider'
 import { formatDuration } from '@/lib/status'
-import type { Borrower, DeskState, Item } from '@/lib/types'
+import type { Borrower, Condition, DeskState, Item } from '@/lib/types'
 
 export default function App() {
   const { data, error } = useDeskState()
@@ -61,6 +62,7 @@ function Desk({ state }: { state: DeskState }) {
   const [flash, setFlash] = useState<{ id: number; key: number } | null>(null)
   const [busy, setBusy] = useState(false)
   const [manageOpen, setManageOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const flashKey = useRef(0)
 
   const refresh = useCallback(() => client.invalidateQueries({ queryKey: stateKey }), [client])
@@ -169,6 +171,27 @@ function Desk({ state }: { state: DeskState }) {
     [announceReturn, refresh, showError],
   )
 
+  const setCondition = useCallback(
+    async (item: Item, condition: Condition) => {
+      setBusy(true)
+      try {
+        await api.updateItem(item.id, { condition })
+        toast.success(
+          condition === 'ok'
+            ? t('toast.backInService', { label: item.label })
+            : t('toast.outOfService', { label: item.label, condition: t(`condition.${condition}`) }),
+        )
+        flashSeat(item.id)
+      } catch (err) {
+        showError(err)
+      } finally {
+        setBusy(false)
+        refresh()
+      }
+    },
+    [flashSeat, refresh, showError, t],
+  )
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !manageOpen && setSelectedId(null)
     window.addEventListener('keydown', onKey)
@@ -177,7 +200,7 @@ function Desk({ state }: { state: DeskState }) {
 
   return (
     <div className="flex h-svh flex-col">
-      <Header settings={state.settings} onManage={() => setManageOpen(true)} onChanged={refresh} />
+      <Header settings={state.settings} onManage={() => setManageOpen(true)} onHistory={() => setHistoryOpen(true)} onChanged={refresh} />
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(22rem,26rem)]">
         <main className="flex min-h-0 flex-col gap-4 p-6">
           {state.items.length === 0 ? (
@@ -206,11 +229,13 @@ function Desk({ state }: { state: DeskState }) {
             busy={busy}
             onLend={lend}
             onReturn={takeBack}
+            onCondition={setCondition}
             onClose={() => setSelectedId(null)}
           />
         </aside>
       </div>
       <ActivityStrip recent={state.recent} />
+      <HistorySheet open={historyOpen} onOpenChange={setHistoryOpen} version={`${state.recent[0]?.at ?? ''}-${state.recent.length}`} />
       <ManageSheet open={manageOpen} onOpenChange={setManageOpen} state={state} onChanged={refresh} />
     </div>
   )

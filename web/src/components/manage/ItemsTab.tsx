@@ -109,6 +109,7 @@ function ItemRow({ item, onChanged }: { item: Item; onChanged: () => void }) {
           {item.code}
         </span>
         {item.loan && <span className="block truncate text-sm">{t('items.out', { name: item.loan.borrower_name })}</span>}
+        {item.condition !== 'ok' && <span className="block text-sm text-amber">{t(`condition.${item.condition}`)}</span>}
       </span>
       <Button size="icon-sm" variant="ghost" onClick={() => setEditing(true)} aria-label={`${t('items.edit')} ${item.label}`}>
         <Pencil aria-hidden />

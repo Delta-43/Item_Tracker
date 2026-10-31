@@ -1,11 +1,22 @@
-import { ArrowLeftToLine, ScanLine, UserRoundCheck, X } from 'lucide-react'
+import { ArrowLeftToLine, CircleCheck, ScanLine, TriangleAlert, UserRoundCheck, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { useI18n } from '@/lib/i18n'
 import { nameMatches } from '@/lib/names'
 import { formatClock, formatDuration } from '@/lib/status'
-import type { Borrower, Item } from '@/lib/types'
+import type { Borrower, Condition, Item } from '@/lib/types'
 
 interface ActionPanelProps {
   item: Item | null
@@ -15,6 +26,7 @@ interface ActionPanelProps {
   busy: boolean
   onLend: (item: Item, borrower: Borrower) => void
   onReturn: (item: Item) => void
+  onCondition: (item: Item, condition: Condition) => void
   onClose: () => void
 }
 
@@ -32,9 +44,9 @@ export function ActionPanel(props: ActionPanelProps) {
         </Button>
       </div>
       {item.condition !== 'ok' ? (
-        <OutOfService item={item} />
+        <OutOfService item={item} busy={props.busy} onCondition={props.onCondition} />
       ) : item.loan ? (
-        <LoanDetails item={item} now={props.now} busy={props.busy} onReturn={props.onReturn} />
+        <LoanDetails item={item} now={props.now} busy={props.busy} onReturn={props.onReturn} onCondition={props.onCondition} />
       ) : (
         <LendForm key={item.id} {...props} item={item} />
       )}
@@ -58,17 +70,49 @@ function Idle() {
   )
 }
 
-function OutOfService({ item }: { item: Item }) {
+function OutOfService({ item, busy, onCondition }: { item: Item; busy: boolean; onCondition: ActionPanelProps['onCondition'] }) {
   const { t } = useI18n()
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-4">
       <p className="text-mist">{t('panel.outOfService', { condition: t(`condition.${item.condition as 'lost' | 'damaged'}`) })}</p>
       {item.note && <p className="text-sm">{item.note}</p>}
+      <Button size="lg" variant="outline" disabled={busy} onClick={() => onCondition(item, 'ok')}>
+        <CircleCheck aria-hidden />
+        {t('panel.backInService')}
+      </Button>
     </div>
   )
 }
 
-function LoanDetails({ item, now, busy, onReturn }: { item: Item; now: Date; busy: boolean; onReturn: (item: Item) => void }) {
+/** Marking a lent item lost or damaged closes the loan, so it asks first. */
+function MarkCondition({ item, condition, busy, onCondition }: { item: Item; condition: 'lost' | 'damaged'; busy: boolean; onCondition: ActionPanelProps['onCondition'] }) {
+  const { t } = useI18n()
+  const name = item.loan?.borrower_name ?? ''
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="sm" disabled={busy} className="text-mist">
+          <TriangleAlert aria-hidden />
+          {t(condition === 'lost' ? 'panel.markLost' : 'panel.markDamaged')}
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('panel.markTitle', { label: item.label, condition: t(`condition.${condition}`) })}</AlertDialogTitle>
+          <AlertDialogDescription>{t('panel.markBody', { name })}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('panel.cancel')}</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={() => onCondition(item, condition)}>
+            {t(condition === 'lost' ? 'panel.markLost' : 'panel.markDamaged')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
+function LoanDetails({ item, now, busy, onReturn, onCondition }: { item: Item; now: Date; busy: boolean; onReturn: (item: Item) => void; onCondition: ActionPanelProps['onCondition'] }) {
   const { t, locale } = useI18n()
   const loan = item.loan!
   return (
@@ -85,6 +129,10 @@ function LoanDetails({ item, now, busy, onReturn }: { item: Item; now: Date; bus
         <ArrowLeftToLine aria-hidden />
         {t('panel.takeBack', { label: item.label })}
       </Button>
+      <div className="flex gap-1">
+        <MarkCondition item={item} condition="lost" busy={busy} onCondition={onCondition} />
+        <MarkCondition item={item} condition="damaged" busy={busy} onCondition={onCondition} />
+      </div>
     </div>
   )
 }
