@@ -10,7 +10,7 @@ export function Header({ settings, onManage, onHistory, onChanged }: { settings:
   return (
     <header className="flex h-16 shrink-0 items-center gap-5 border-b px-6">
       {settings.branding === '42warsaw' && (
-        <img src="/branding/42warsaw-logo-white.png" alt="42 Warsaw" className="h-9 w-auto" />
+        <img src={`${import.meta.env.BASE_URL}branding/42warsaw-logo-white.png`} alt="42 Warsaw" className="h-9 w-auto" />
       )}
       <h1 className="shrink-0 text-lg font-semibold tracking-[0.12em] uppercase">{labels.desk}</h1>
       <div className="min-w-4 flex-1" />
