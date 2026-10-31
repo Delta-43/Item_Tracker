@@ -4,7 +4,7 @@ A self-hosted lending desk. Stick a QR code on each item you lend out (access ca
 
 It runs on one computer with one Docker command. No accounts, no cloud, no RFID reader, no internet connection needed at the desk, and all data stays on that computer.
 
-> **Status:** feature-complete for its first deployment; being tested at the desk before a 1.0 release.
+> **Status:** 1.0, in use at 42 Warsaw's access card desk. Pin a version with `ghcr.io/delta-43/item_tracker:1.0.0`, or follow `:latest`.
 
 ## Quick start (Windows)
 
