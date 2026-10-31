@@ -28,7 +28,7 @@ export function VolunteerField({ settings, onChanged }: { settings: Settings; on
   if (editing) {
     return (
       <form onSubmit={save} className="flex items-center gap-2">
-        <UserRound className="size-4 text-mist" aria-hidden />
+        <UserRound strokeWidth={1.5} className="size-4 text-mist" aria-hidden />
         <Input
           autoFocus
           value={value}
@@ -59,7 +59,7 @@ export function VolunteerField({ settings, onChanged }: { settings: Settings; on
       className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-seat hover:text-foreground"
       aria-label={t('header.volunteerLabel')}
     >
-      <UserRound className="size-4" aria-hidden />
+      <UserRound strokeWidth={1.5} className="size-4" aria-hidden />
       {settings.volunteer ? (
         <span>
           {t('header.onDuty')} <span className="font-medium text-foreground">{settings.volunteer}</span>

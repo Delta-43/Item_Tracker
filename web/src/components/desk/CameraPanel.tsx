@@ -20,16 +20,23 @@ export function CameraPanel({ onCode }: { onCode: (code: string) => void }) {
   const problem = problems[scanner.status]
 
   return (
-    <section aria-label={t('camera.preview')} className="flex flex-col gap-2">
-      <div className="relative aspect-video overflow-hidden rounded-xl bg-navy-deep">
+    <section aria-label={t('camera.preview')} className="flex shrink-0 flex-col">
+      {/* Capped height so the lend panel below always keeps room on short laptop screens. */}
+      <div className="relative aspect-video max-h-[24svh] overflow-hidden rounded-xl bg-navy-deep outline outline-1 -outline-offset-1 outline-white/10">
         {/* Mirrored like a mirror, which is how people expect to aim a card at a front camera. */}
         <video ref={videoRef} muted playsInline className={cn('size-full -scale-x-100 object-cover', scanner.status !== 'ready' && 'invisible')} />
         {scanner.status === 'ready' && (
           <div aria-hidden className="pointer-events-none absolute inset-y-[18%] left-1/2 aspect-square -translate-x-1/2 rounded-lg border-2 border-teal/80" />
         )}
-        {scanner.multiple && (
-          <p className="absolute inset-x-3 bottom-3 rounded-md bg-amber px-3 py-2 text-sm font-medium text-navy">{t('camera.multiple')}</p>
-        )}
+        <p
+          aria-live="polite"
+          className={cn(
+            'absolute inset-x-3 bottom-3 rounded-md bg-amber px-3 py-2 text-sm font-medium text-navy transition-[opacity,translate] duration-150 ease-out',
+            scanner.multiple ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-1 opacity-0',
+          )}
+        >
+          {scanner.multiple ? t('camera.multiple') : ''}
+        </p>
         {problem && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center">
             <CameraOff className="size-7 text-mist" aria-hidden />
@@ -41,15 +48,15 @@ export function CameraPanel({ onCode }: { onCode: (code: string) => void }) {
             </Button>
           </div>
         )}
-      </div>
-      <div className="flex items-center gap-3 text-sm">
-        <span className="flex items-center gap-2 text-mist" role="status">
-          <span className={cn('size-2 rounded-full', scanner.status === 'ready' ? 'bg-teal' : scanner.status === 'starting' ? 'bg-amber' : 'bg-pink')} aria-hidden />
-          {scanner.status === 'ready' ? t('camera.ready') : scanner.status === 'starting' ? t('camera.starting') : t(problem?.[0] ?? 'camera.error')}
-        </span>
+        {!scanner.multiple && (
+          <span className="absolute top-2 left-2 flex items-center gap-2 rounded-full bg-navy-deep/80 px-2.5 py-1 text-xs text-mist" role="status">
+            <span className={cn('size-2 rounded-full', scanner.status === 'ready' ? 'bg-teal' : scanner.status === 'starting' ? 'bg-amber' : 'bg-pink')} aria-hidden />
+            {scanner.status === 'ready' ? t('camera.ready') : scanner.status === 'starting' ? t('camera.starting') : t(problem?.[0] ?? 'camera.error')}
+          </span>
+        )}
         {scanner.devices.length > 1 && (
           <Select value={scanner.deviceId ?? scanner.devices[0]?.deviceId} onValueChange={scanner.setDeviceId}>
-            <SelectTrigger size="sm" className="ml-auto max-w-[55%]" aria-label={t('camera.choose')}>
+            <SelectTrigger size="sm" className="absolute top-2 right-2 max-w-[50%] border-0 bg-navy-deep/80" aria-label={t('camera.choose')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

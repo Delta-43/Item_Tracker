@@ -29,7 +29,7 @@ test('history lists loans and exports them as CSV', async ({ page, request }) =>
   const row = page.getByRole('row', { name: new RegExp(`${item.label} Iga Historyczna`) })
   await expect(row).toBeVisible()
   await page.getByRole('textbox', { name: /Search by name/ }).fill('iga')
-  await expect(page.getByText(/^1 loans, 0 still out$/)).toBeVisible()
+  await expect(page.getByText('Loans: 1 · still out: 0')).toBeVisible()
 
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export CSV' }).click()

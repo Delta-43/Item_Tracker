@@ -201,7 +201,7 @@ function Desk({ state }: { state: DeskState }) {
   return (
     <div className="flex h-svh flex-col">
       <Header settings={state.settings} onManage={() => setManageOpen(true)} onHistory={() => setHistoryOpen(true)} onChanged={refresh} />
-      <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(22rem,26rem)]">
+      <div className="grid min-h-0 flex-1 grid-cols-[1fr_clamp(18rem,28vw,26rem)]">
         <main className="flex min-h-0 flex-col gap-4 p-6">
           {state.items.length === 0 ? (
             <EmptyDesk onManage={() => setManageOpen(true)} onChanged={refresh} />
@@ -219,10 +219,11 @@ function Desk({ state }: { state: DeskState }) {
             </>
           )}
         </main>
-        <aside className="flex min-h-0 flex-col gap-6 border-l bg-navy-deep/40 p-6">
+        <aside className="flex min-h-0 flex-col gap-5 overflow-y-auto border-l bg-navy-deep/40 p-5">
           <CameraPanel onCode={handleScan} />
           <ActionPanel
             item={selected}
+            settings={state.settings}
             items={state.items}
             borrowers={state.borrowers}
             now={now}
