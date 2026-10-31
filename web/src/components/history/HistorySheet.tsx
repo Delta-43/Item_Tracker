@@ -74,7 +74,7 @@ export function HistorySheet({ open, onOpenChange, version }: HistorySheetProps)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full gap-0 sm:max-w-4xl">
+      <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-4xl">
         <SheetHeader className="border-b">
           <SheetTitle className="text-xl">{t('history.title')}</SheetTitle>
           <SheetDescription>{t('history.description')}</SheetDescription>
