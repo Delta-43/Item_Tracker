@@ -1,10 +1,10 @@
-import { Boxes } from 'lucide-react'
+import { Boxes, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/lib/i18n'
 import type { Settings } from '@/lib/types'
 import { VolunteerField } from './VolunteerField'
 
-export function Header({ settings, onManage, onChanged }: { settings: Settings; onManage: () => void; onChanged: () => void }) {
+export function Header({ settings, onManage, onHistory, onChanged }: { settings: Settings; onManage: () => void; onHistory: () => void; onChanged: () => void }) {
   const { t } = useI18n()
   const labels = settings.labels[settings.language]
   return (
@@ -15,6 +15,10 @@ export function Header({ settings, onManage, onChanged }: { settings: Settings; 
       <h1 className="text-lg font-semibold tracking-[0.12em] uppercase">{labels.desk}</h1>
       <div className="flex-1" />
       <VolunteerField key={settings.volunteer} settings={settings} onChanged={onChanged} />
+      <Button variant="outline" onClick={onHistory}>
+        <History aria-hidden />
+        {t('history.open')}
+      </Button>
       <Button variant="outline" onClick={onManage}>
         <Boxes aria-hidden />
         {t('header.manage')}

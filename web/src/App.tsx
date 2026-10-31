@@ -8,6 +8,7 @@ import { CameraPanel } from '@/components/desk/CameraPanel'
 import { EmptyDesk } from '@/components/desk/EmptyDesk'
 import { Header } from '@/components/desk/Header'
 import { Legend, SeatGrid } from '@/components/desk/SeatGrid'
+import { HistorySheet } from '@/components/history/HistorySheet'
 import { ManageSheet } from '@/components/manage/ManageSheet'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -61,6 +62,7 @@ function Desk({ state }: { state: DeskState }) {
   const [flash, setFlash] = useState<{ id: number; key: number } | null>(null)
   const [busy, setBusy] = useState(false)
   const [manageOpen, setManageOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const flashKey = useRef(0)
 
   const refresh = useCallback(() => client.invalidateQueries({ queryKey: stateKey }), [client])
@@ -177,7 +179,7 @@ function Desk({ state }: { state: DeskState }) {
 
   return (
     <div className="flex h-svh flex-col">
-      <Header settings={state.settings} onManage={() => setManageOpen(true)} onChanged={refresh} />
+      <Header settings={state.settings} onManage={() => setManageOpen(true)} onHistory={() => setHistoryOpen(true)} onChanged={refresh} />
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(22rem,26rem)]">
         <main className="flex min-h-0 flex-col gap-4 p-6">
           {state.items.length === 0 ? (
@@ -211,6 +213,7 @@ function Desk({ state }: { state: DeskState }) {
         </aside>
       </div>
       <ActivityStrip recent={state.recent} />
+      <HistorySheet open={historyOpen} onOpenChange={setHistoryOpen} version={`${state.recent[0]?.at ?? ''}-${state.recent.length}`} />
       <ManageSheet open={manageOpen} onOpenChange={setManageOpen} state={state} onChanged={refresh} />
     </div>
   )
