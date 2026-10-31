@@ -6,21 +6,31 @@ It runs on one computer with one Docker command. No accounts, no cloud, no RFID 
 
 > **Status:** 1.0, in use at 42 Warsaw's access card desk. Pin a version with `ghcr.io/delta-43/item_tracker:1.0.0`, or follow `:latest`.
 
-## Quick start (Windows)
+## Install
 
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start it.
-2. Download [`compose.yaml`](compose.yaml) into a new folder.
-3. Open a terminal in that folder and run:
+You need [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows or macOS) or Docker Engine (Linux), started and running. The image is public on GitHub's container registry, `ghcr.io/delta-43/item_tracker`, for amd64 and arm64. No account or login is needed to pull it.
 
-   ```powershell
-   docker compose up -d
-   ```
+**Windows, double-click:** download [`install.cmd`](install/install.cmd) (*Download raw file*) and double-click it. It pulls the latest version, starts the desk and opens it in the browser. Run it again later to update. Your data is kept.
 
-4. Open <http://localhost:4242> in Chrome, Edge or Firefox and allow camera access.
+**Any system, one command** in a terminal (PowerShell, Command Prompt, macOS or Linux):
 
-To stop the desk, run `docker compose down`. Your data stays in the `item-tracker-data` Docker volume until you delete it with `docker volume rm`.
+```sh
+docker run -d --name item-tracker --restart unless-stopped -p 127.0.0.1:4242:4242 -v itemtracker_item-tracker-data:/data ghcr.io/delta-43/item_tracker:latest
+```
 
-The desk only listens on `127.0.0.1`, so other devices on the network can't reach it.
+**Docker Compose:** download [`compose.yaml`](compose.yaml) into a folder and run `docker compose up -d` there.
+
+Then open <http://localhost:4242> in Chrome, Edge or Firefox and allow camera access. The desk starts by itself whenever Docker runs, and it only listens on `127.0.0.1`, so other devices on the network can't reach it.
+
+All three methods keep the data in the same Docker volume, `itemtracker_item-tracker-data`. Use one of them on a given computer: the container is called `item-tracker` either way, so a second method reports a name conflict.
+
+| To | Do this |
+| --- | --- |
+| Stop or start | Docker Desktop › Containers › `item-tracker`, or `docker stop item-tracker` / `docker start item-tracker` |
+| Update | Run `install.cmd` again, or `docker compose pull && docker compose up -d`. With `docker run`: `docker pull ghcr.io/delta-43/item_tracker:latest`, `docker rm -f item-tracker`, then the run command again |
+| Pin a version | Use `ghcr.io/delta-43/item_tracker:1.0.0` (or `:1.0`) instead of `:latest` |
+| Move a desk to another computer | Old computer: *Cards & students › Desk › Download backup*. New computer: install, then *Restore from backup* in the same place |
+| Remove everything | `docker rm -f item-tracker`, then `docker volume rm itemtracker_item-tracker-data` (this deletes the desk's data) |
 
 ## First-day setup
 
@@ -30,7 +40,7 @@ The desk only listens on `127.0.0.1`, so other devices on the network can't reac
 4. **Set the rules.** *Cards & students › Desk*: overdue time limit, closing time, language (English or Polish), logo, and what the items and borrowers are called.
 5. **Put the team on duty in the header** (click *Nobody on duty*, then the add button for more). Up to five volunteers can be on duty; everyone listed is recorded with every lend and return.
 
-At the desk: scan a card that is out and it comes back (with Undo); scan a free card, type part of a name, press Enter. Clicking a card works the same if a sticker won't scan. *History* shows every loan and exports CSV for Excel; *Desk › Download backup* saves a copy of the database.
+At the desk: scan a card that is out and it comes back (with Undo); scan a free card, type part of a name, press Enter. Clicking a card works the same if a sticker won't scan. *History* shows every loan and exports CSV for Excel; *Desk › Download backup* saves a copy of the database, and *Restore from backup* loads one.
 
 ## Roadmap
 
@@ -40,6 +50,7 @@ At the desk: scan a card that is out and it comes back (with Undo); scan a free 
 - [x] Borrower roster import (only roster names can borrow) and the team on duty (up to five)
 - [x] Loan history with CSV export, overdue highlighting, lost/damaged items, database backup
 - [x] Printable QR sheets (1.25 in squares on A4), configurable labels, Polish translation
+- [x] Restore a backup from the app; install or update on Windows with one double-click
 
 ## Privacy
 
