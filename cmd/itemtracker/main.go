@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Delta-43/Item_Tracker/internal/server"
+	"github.com/Delta-43/Item_Tracker/internal/store"
 	"github.com/Delta-43/Item_Tracker/web"
 )
 
@@ -32,6 +33,12 @@ func main() {
 
 func run() error {
 	addr := env("ITEMTRACKER_ADDR", ":4242")
+	dataDir := env("ITEMTRACKER_DATA", "data")
+	st, err := store.Open(dataDir)
+	if err != nil {
+		return fmt.Errorf("open database in %s: %w", dataDir, err)
+	}
+	defer st.Close()
 	ui, err := fs.Sub(web.Dist, "dist")
 	if err != nil {
 		return err
@@ -39,7 +46,7 @@ func run() error {
 	handler := server.New(server.Config{
 		AllowedHosts: strings.Split(os.Getenv("ITEMTRACKER_ALLOWED_HOSTS"), ","),
 		Version:      version,
-	}, ui)
+	}, st, ui)
 
 	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 10 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -47,7 +54,7 @@ func run() error {
 
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
-	log.Printf("Item Tracker %s listening on %s", version, addr)
+	log.Printf("Item Tracker %s listening on %s (data in %s)", version, addr, dataDir)
 
 	select {
 	case err := <-errc:

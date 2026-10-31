@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/Delta-43/Item_Tracker/internal/store"
 )
 
 // Config controls how the server accepts requests.
@@ -20,11 +22,12 @@ type Config struct {
 }
 
 // New returns the root handler: the JSON API under /api and the web app elsewhere.
-func New(cfg Config, ui fs.FS) http.Handler {
+func New(cfg Config, st *store.Store, ui fs.FS) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "version": cfg.Version})
 	})
+	(&api{store: st, events: newHub()}).routes(mux)
 	mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		writeError(w, http.StatusNotFound, "not_found", "Unknown API endpoint")
 	}))
