@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, type ReactNode } from 'react'
 import { dictionaries, english, I18nContext, type Translate, type Vars } from './i18n'
 import type { Labels, Language } from './types'
 
@@ -21,6 +21,9 @@ export function I18nProvider({ lang, labels, children }: { lang: Language; label
     },
     [lang, labels],
   )
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
   const value = useMemo(() => ({ t, lang, locale: lang === 'pl' ? 'pl-PL' : 'en-GB' }), [t, lang])
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

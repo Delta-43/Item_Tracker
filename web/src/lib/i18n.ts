@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import { pl } from './pl'
 import type { Language } from './types'
 
 // Placeholders: {item} "Card", {item_lc} "card", {items}, {items_lc},
@@ -161,6 +162,29 @@ const en = {
   'desk.backupTitle': 'Backup',
   'desk.backupHint': 'Download a copy of everything: {items_lc}, roster and history. Keep it on this computer; it contains names.',
   'desk.backup': 'Download backup',
+  'desk.wordingTitle': 'Language and wording',
+  'desk.saveWording': 'Save language and wording',
+  'desk.wordingHint': 'Rename what you lend and who borrows it, for example Key and Guest. The words are kept separately for each language.',
+  'desk.language': 'Language',
+  'desk.branding': 'Logo',
+  'desk.brandingNone': 'No logo',
+  'desk.labelItem': 'Item (one)',
+  'desk.labelItems': 'Items (many)',
+  'desk.labelBorrower': 'Borrower (one)',
+  'desk.labelBorrowers': 'Borrowers (many)',
+  'desk.labelDesk': 'Desk title',
+
+  'print.title': 'Print',
+  'print.hint': 'Each QR code prints exactly 1.25 in (31.75 mm) square on A4, with a dashed cutting guide. In the print dialog choose 100% / Actual size and turn off “Fit to page”.',
+  'print.which': 'Which {items_lc}',
+  'print.all': 'All',
+  'print.none': 'None',
+  'print.copies': 'Copies of each',
+  'print.captions': 'Print labels under the codes',
+  'print.summary': '{count} stickers on {pages} A4 pages',
+  'print.button': 'Print sheet',
+  'print.empty': 'Choose at least one {item_lc}.',
+  'print.ruler': 'This line should be exactly 50 mm long. If it isn’t, the printer scaled the page.',
 
   'condition.lost': 'lost',
   'condition.damaged': 'damaged',
@@ -169,13 +193,8 @@ const en = {
 export type MessageKey = keyof typeof en
 type Dictionary = Record<MessageKey, string>
 
-export const dictionaries: Record<Language, Dictionary> = { en, pl: en }
+export const dictionaries: Record<Language, Dictionary> = { en, pl }
 export { en as english }
-
-/** Registers a translation; PR-sized additions plug in without touching callers. */
-export function registerDictionary(lang: Language, dict: Dictionary) {
-  dictionaries[lang] = dict
-}
 
 export type Vars = Record<string, string | number>
 export type Translate = (key: MessageKey, vars?: Vars) => string

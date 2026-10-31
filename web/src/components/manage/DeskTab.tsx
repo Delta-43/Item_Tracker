@@ -4,9 +4,10 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { api } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
-import type { Settings } from '@/lib/types'
+import type { Labels, Language, Settings } from '@/lib/types'
 
 /** Desk-wide rules: when a loan counts as overdue, and a way to keep a copy of the data. */
 export function DeskTab({ settings, onChanged }: { settings: Settings; onChanged: () => void }) {
@@ -61,6 +62,8 @@ export function DeskTab({ settings, onChanged }: { settings: Settings; onChanged
         </Button>
       </form>
 
+      <WordingForm key={JSON.stringify([settings.language, settings.branding, settings.labels])} settings={settings} onChanged={onChanged} />
+
       <section className="flex flex-col gap-3">
         <h3 className="text-lg font-semibold">{t('desk.backupTitle')}</h3>
         <p className="text-sm text-mist">{t('desk.backupHint')}</p>
@@ -72,5 +75,82 @@ export function DeskTab({ settings, onChanged }: { settings: Settings; onChanged
         </Button>
       </section>
     </div>
+  )
+}
+
+const labelFields: [keyof Labels, 'desk.labelItem' | 'desk.labelItems' | 'desk.labelBorrower' | 'desk.labelBorrowers' | 'desk.labelDesk'][] = [
+  ['item', 'desk.labelItem'],
+  ['items', 'desk.labelItems'],
+  ['borrower', 'desk.labelBorrower'],
+  ['borrowers', 'desk.labelBorrowers'],
+  ['desk', 'desk.labelDesk'],
+]
+
+/** Language, logo and the nouns the desk uses, so it can track any kind of item. */
+function WordingForm({ settings, onChanged }: { settings: Settings; onChanged: () => void }) {
+  const { t } = useI18n()
+  const [language, setLanguage] = useState<Language>(settings.language)
+  const [branding, setBranding] = useState(settings.branding)
+  const [labels, setLabels] = useState(settings.labels)
+  const [saving, setSaving] = useState(false)
+  const current = labels[language]
+
+  async function save(e: FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await api.saveSettings({ ...settings, language, branding, labels })
+      onChanged()
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="flex flex-col gap-4">
+      <h3 className="text-lg font-semibold">{t('desk.wordingTitle')}</h3>
+      <p className="text-sm text-mist">{t('desk.wordingHint')}</p>
+      <div className="grid grid-cols-[10rem_1fr] items-center gap-x-4 gap-y-3">
+        <Label htmlFor="language">{t('desk.language')}</Label>
+        <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
+          <SelectTrigger id="language" className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="pl">Polski</SelectItem>
+          </SelectContent>
+        </Select>
+        <Label htmlFor="branding">{t('desk.branding')}</Label>
+        <Select value={branding} onValueChange={(v) => setBranding(v as Settings['branding'])}>
+          <SelectTrigger id="branding" className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="42warsaw">42 Warsaw</SelectItem>
+            <SelectItem value="none">{t('desk.brandingNone')}</SelectItem>
+          </SelectContent>
+        </Select>
+        {labelFields.map(([field, key]) => (
+          <div key={field} className="contents">
+            <Label htmlFor={`label-${field}`}>{t(key)}</Label>
+            <Input
+              id={`label-${field}`}
+              value={current[field]}
+              maxLength={40}
+              required
+              onChange={(e) => setLabels({ ...labels, [language]: { ...current, [field]: e.target.value } })}
+              className="w-64"
+            />
+          </div>
+        ))}
+      </div>
+      <Button type="submit" className="self-start" disabled={saving}>
+        <Save aria-hidden />
+        {t('desk.saveWording')}
+      </Button>
+    </form>
   )
 }

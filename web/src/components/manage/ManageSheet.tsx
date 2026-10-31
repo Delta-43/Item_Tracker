@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useI18n } from '@/lib/i18n'
 import type { DeskState } from '@/lib/types'
 import { ItemsTab } from './ItemsTab'
+import { PrintTab } from '@/components/print/PrintTab'
 import { DeskTab } from './DeskTab'
 import { RosterTab } from './RosterTab'
 
@@ -27,6 +28,7 @@ export function ManageSheet({ open, onOpenChange, state, onChanged }: ManageShee
           <TabsList>
             <TabsTrigger value="items">{t('items.title')}</TabsTrigger>
             <TabsTrigger value="roster">{t('roster.title')}</TabsTrigger>
+            <TabsTrigger value="print">{t('print.title')}</TabsTrigger>
             <TabsTrigger value="desk">{t('desk.title')}</TabsTrigger>
           </TabsList>
           <TabsContent value="items" className="pt-4">
@@ -34,6 +36,9 @@ export function ManageSheet({ open, onOpenChange, state, onChanged }: ManageShee
           </TabsContent>
           <TabsContent value="roster" className="pt-4">
             <RosterTab borrowers={state.borrowers} items={state.items} onChanged={onChanged} />
+          </TabsContent>
+          <TabsContent value="print" className="pt-4">
+            <PrintTab items={state.items} />
           </TabsContent>
           <TabsContent value="desk" className="pt-4">
             <DeskTab key={`${state.settings.overdue_minutes}-${state.settings.closing_time}`} settings={state.settings} onChanged={onChanged} />
