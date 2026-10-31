@@ -1,6 +1,6 @@
 import { AlarmClock, Ban, CircleDashed, Clock3, TriangleAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { useI18n } from '@/lib/i18n'
 import { dueAt, formatClock, formatDuration, seatStatus, type SeatStatus } from '@/lib/status'
 import type { Item, Settings } from '@/lib/types'
@@ -151,7 +151,7 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
       aria-label={aria}
       aria-pressed={selected}
       className={cn(
-        'motion-press @container relative flex min-h-0 min-w-0 flex-col rounded-xl p-3 text-left xl:p-4',
+        'motion-press relative flex [container-type:size] min-h-0 min-w-0 flex-col rounded-xl p-3 text-left xl:p-4',
         'outline-3 outline-offset-3 outline-transparent focus-visible:outline-teal',
         seatStyles[status],
         selected && 'outline-white focus-visible:outline-white',
@@ -159,7 +159,13 @@ function Seat({ item, settings, now, selected, flashKey, onSelect }: SeatProps) 
     >
       <span ref={ring} aria-hidden className="pointer-events-none absolute -inset-1 rounded-[calc(var(--radius-xl)+4px)] border-2 border-white opacity-0" />
       <StatusIcon status={status} />
-      <span className="text-[clamp(2.5rem,26cqh,4.5rem)] leading-none font-bold tracking-[-0.04em]">{item.label}</span>
+      {/* Short labels fill the seat; longer ones (Laser, L12, Storeroom) shrink to the width left beside the icon. */}
+      <span
+        className="line-clamp-2 pr-6 text-[clamp(1.25rem,min(26cqh,calc((100cqw_-_1.5rem)_/_(var(--chars)_*_0.74))),4.5rem)] leading-none font-bold tracking-[-0.04em] break-words @[9rem]:pr-7"
+        style={{ '--chars': Math.max(2, [...item.label].length) } as CSSProperties}
+      >
+        {item.label}
+      </span>
       <span className="mt-auto min-w-0 pt-2">
         {status === 'out_of_service' ? (
           <span className="block font-semibold">{t(item.condition === 'lost' ? 'seat.lost' : 'seat.damaged')}</span>
