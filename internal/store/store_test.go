@@ -2,6 +2,9 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -303,5 +306,83 @@ func TestVolunteersLimitAndLegacyMigration(t *testing.T) {
 	got, err := f.s.Settings(ctx)
 	if err != nil || len(got.Volunteers) != 1 || got.Volunteers[0] != "Ola Dawna" || got.LegacyVolunteer != "" {
 		t.Fatalf("legacy migration: %+v %v", got, err)
+	}
+}
+
+func TestRestore(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	it := f.item("1", "")
+	ola := f.borrower("Ola Zapasowa")
+	if _, err := f.s.Lend(ctx, it.ID, ola.ID, "Kasia"); err != nil {
+		t.Fatal(err)
+	}
+	st, _ := f.s.Settings(ctx)
+	st.ClosingTime = "18:00"
+	if _, err := f.s.SaveSettings(ctx, st); err != nil {
+		t.Fatal(err)
+	}
+	backup := filepath.Join(t.TempDir(), "backup.db")
+	if err := f.s.Backup(ctx, backup); err != nil {
+		t.Fatal(err)
+	}
+
+	// Change everything after the backup, then restore it.
+	f.item("2", "")
+	f.borrower("Jan Późniejszy")
+	st.ClosingTime = ""
+	f.s.SaveSettings(ctx, st)
+	f.tick(time.Hour)
+	saved, err := f.s.Restore(ctx, backup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	items, _ := f.s.Items(ctx)
+	people, _ := f.s.Borrowers(ctx, true)
+	got, _ := f.s.Settings(ctx)
+	if len(items) != 1 || items[0].Loan == nil || items[0].Loan.BorrowerName != "Ola Zapasowa" || len(people) != 1 || got.ClosingTime != "18:00" {
+		t.Fatalf("after restore: items %+v people %+v settings %+v", items, people, got)
+	}
+
+	// The data from before the restore was saved and is itself a valid backup.
+	if saved != "before-restore-2026-11-02-100000.db" {
+		t.Fatalf("saved as %q", saved)
+	}
+	if _, err := f.s.Restore(ctx, filepath.Join(filepath.Dir(f.s.path), saved)); err != nil {
+		t.Fatal(err)
+	}
+	if items, _ = f.s.Items(ctx); len(items) != 2 {
+		t.Fatalf("undo restore: %+v", items)
+	}
+}
+
+func TestRestoreRefusesOtherFiles(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	f.item("1", "")
+	dir := t.TempDir()
+
+	junk := filepath.Join(dir, "junk.db")
+	os.WriteFile(junk, []byte("hello, not a database"), 0o600)
+	_, err := f.s.Restore(ctx, junk)
+	wantCode(t, err, "not_a_backup")
+
+	empty := filepath.Join(dir, "empty.db")
+	os.WriteFile(empty, nil, 0o600)
+	_, err = f.s.Restore(ctx, empty)
+	wantCode(t, err, "not_a_backup")
+
+	newer := filepath.Join(dir, "newer.db")
+	if err := f.s.Backup(ctx, newer); err != nil {
+		t.Fatal(err)
+	}
+	db, _ := sql.Open("sqlite", "file:"+newer)
+	db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, len(migrations)+1))
+	db.Close()
+	_, err = f.s.Restore(ctx, newer)
+	wantCode(t, err, "backup_too_new")
+
+	if items, _ := f.s.Items(ctx); len(items) != 1 {
+		t.Fatalf("a refused restore changed the desk: %+v", items)
 	}
 }

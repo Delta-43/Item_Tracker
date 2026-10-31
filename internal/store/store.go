@@ -19,8 +19,9 @@ const timeFormat = "2006-01-02T15:04:05.000Z"
 
 // Store is safe for concurrent use; writes are serialised through one connection.
 type Store struct {
-	db  *sql.DB
-	now func() time.Time
+	db   *sql.DB
+	path string
+	now  func() time.Time
 }
 
 // Error is a failure the volunteer can act on, carrying the HTTP status to report.
@@ -61,7 +62,7 @@ func OpenFile(path string) (*Store, error) {
 	// One connection keeps every read-check-write sequence atomic without
 	// explicit locking, and SQLite only allows one writer anyway.
 	db.SetMaxOpenConns(1)
-	s := &Store{db: db, now: time.Now}
+	s := &Store{db: db, path: path, now: time.Now}
 	if err := s.migrate(context.Background()); err != nil {
 		db.Close()
 		return nil, err

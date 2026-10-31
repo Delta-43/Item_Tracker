@@ -1,15 +1,25 @@
-import { DatabaseBackup, Save } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { ArchiveRestore, DatabaseBackup, Save } from 'lucide-react'
+import { useRef, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { api } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
 import type { Labels, Language, Settings } from '@/lib/types'
 
-/** Desk-wide rules: when a loan counts as overdue, and a way to keep a copy of the data. */
+/** Desk-wide rules: when a loan counts as overdue, and a way to keep and restore a copy of the data. */
 export function DeskTab({ settings, onChanged }: { settings: Settings; onChanged: () => void }) {
   const { t } = useI18n()
   const [hours, setHours] = useState(String(settings.overdue_minutes / 60))
@@ -67,14 +77,83 @@ export function DeskTab({ settings, onChanged }: { settings: Settings; onChanged
       <section className="flex flex-col gap-3">
         <h3 className="text-lg font-semibold">{t('desk.backupTitle')}</h3>
         <p className="text-sm text-mist">{t('desk.backupHint')}</p>
-        <Button asChild variant="outline" className="self-start">
-          <a href="/api/backup" download>
-            <DatabaseBackup aria-hidden />
-            {t('desk.backup')}
-          </a>
-        </Button>
+        <p className="text-sm text-mist">{t('desk.restoreHint')}</p>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="outline">
+            <a href="/api/backup" download>
+              <DatabaseBackup aria-hidden />
+              {t('desk.backup')}
+            </a>
+          </Button>
+          <RestoreButton onChanged={onChanged} />
+        </div>
       </section>
     </div>
+  )
+}
+
+const restoreErrors = {
+  not_a_backup: 'desk.notBackup',
+  backup_too_new: 'desk.backupTooNew',
+  backup_damaged: 'desk.backupDamaged',
+} as const
+
+/** Picks a backup file, confirms, and replaces the desk's data with it. */
+function RestoreButton({ onChanged }: { onChanged: () => void }) {
+  const { t } = useI18n()
+  const input = useRef<HTMLInputElement>(null)
+  const [file, setFile] = useState<File | null>(null)
+  const [restoring, setRestoring] = useState(false)
+
+  async function restore() {
+    if (!file) return
+    setRestoring(true)
+    try {
+      const { saved } = await api.restore(file)
+      toast.success(t('desk.restored', { file: saved }))
+      onChanged()
+    } catch (err) {
+      const key = err instanceof ApiError ? restoreErrors[err.code as keyof typeof restoreErrors] : undefined
+      toast.error(key ? t(key) : (err as Error).message)
+    } finally {
+      setRestoring(false)
+      setFile(null)
+    }
+  }
+
+  return (
+    <>
+      <input
+        ref={input}
+        type="file"
+        accept=".db,.sqlite,application/vnd.sqlite3"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={(e) => {
+          setFile(e.target.files?.[0] ?? null)
+          e.target.value = ''
+        }}
+      />
+      <Button variant="outline" disabled={restoring} onClick={() => input.current?.click()}>
+        <ArchiveRestore aria-hidden />
+        {restoring ? t('desk.restoring') : t('desk.restore')}
+      </Button>
+      <AlertDialog open={file !== null && !restoring} onOpenChange={(open) => !open && setFile(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('desk.restoreTitle', { file: file?.name ?? '' })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('desk.restoreBody')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('panel.cancel')}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={restore}>
+              {t('desk.restoreConfirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

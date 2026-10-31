@@ -162,6 +162,41 @@ func TestBackupDownload(t *testing.T) {
 	}
 }
 
+func TestRestoreUpload(t *testing.T) {
+	c := newClient(t)
+	c.call("POST", "/api/items", map[string]string{"label": "1"}, 201, nil)
+	req := httptest.NewRequest("GET", "/api/backup", nil)
+	req.Host = "localhost"
+	rec := httptest.NewRecorder()
+	c.h.ServeHTTP(rec, req)
+	backup := rec.Body.Bytes()
+	c.call("POST", "/api/items", map[string]string{"label": "2"}, 201, nil)
+
+	upload := func(body []byte, origin string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest("POST", "/api/restore", bytes.NewReader(body))
+		req.Host = "localhost:4242"
+		req.Header.Set("Origin", origin)
+		rec := httptest.NewRecorder()
+		c.h.ServeHTTP(rec, req)
+		return rec
+	}
+	if rec := upload(backup, "http://evil.example"); rec.Code != http.StatusForbidden {
+		t.Fatalf("cross-site restore: %d", rec.Code)
+	}
+	if rec := upload([]byte("not a database at all"), "http://localhost:4242"); rec.Code != 422 || !strings.Contains(rec.Body.String(), "not_a_backup") {
+		t.Fatalf("junk upload: %d %s", rec.Code, rec.Body)
+	}
+	rec = upload(backup, "http://localhost:4242")
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"saved":"before-restore-`) {
+		t.Fatalf("restore: %d %s", rec.Code, rec.Body)
+	}
+	var st State
+	c.call("GET", "/api/state", nil, 200, &st)
+	if len(st.Items) != 1 || st.Items[0].Label != "1" {
+		t.Fatalf("items after restore: %+v", st.Items)
+	}
+}
+
 func TestEventsNotifyOnChange(t *testing.T) {
 	st := testStore(t)
 	srv := httptest.NewServer(New(Config{}, st, testUI()))

@@ -42,6 +42,7 @@ func (a *api) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/settings", a.settings)
 	mux.HandleFunc("PUT /api/settings", a.saveSettings)
 	mux.HandleFunc("GET /api/backup", a.backup)
+	mux.HandleFunc("POST /api/restore", a.restore)
 }
 
 // State is everything the desk screen needs in one response.
@@ -264,6 +265,41 @@ func (a *api) backup(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
 	w.Header().Set("Cache-Control", "no-store")
 	_, _ = io.Copy(w, f)
+}
+
+// maxBackup caps an uploaded backup; a desk's database is well under 1 MB.
+const maxBackup = 64 << 20
+
+// restore replaces the desk's data with an uploaded backup (the raw .db file
+// as the request body) and reports where the previous data was saved.
+func (a *api) restore(w http.ResponseWriter, r *http.Request) {
+	dir, err := os.MkdirTemp("", "item-tracker-restore-")
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	defer os.RemoveAll(dir)
+	path := filepath.Join(dir, "upload.db")
+	f, err := os.Create(path)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	_, err = io.Copy(f, http.MaxBytesReader(w, r.Body, maxBackup))
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		var tooBig *http.MaxBytesError
+		if errors.As(err, &tooBig) {
+			writeError(w, http.StatusRequestEntityTooLarge, "too_large", "That file is too large to be a backup")
+		} else {
+			writeError(w, http.StatusBadRequest, "bad_request", "The upload did not complete; try again")
+		}
+		return
+	}
+	saved, err := a.store.Restore(r.Context(), path)
+	a.respond(w, map[string]string{"saved": saved}, err, true)
 }
 
 // respond writes v or the error; changed tells open tabs to refresh.
