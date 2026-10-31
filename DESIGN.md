@@ -275,7 +275,7 @@ When a seat changes (scan, lend, return, undo, condition change), a 2px white ri
 The right column: camera, then the action panel. Idle shows a teal scan icon, a title and short mist copy. With an item selected it shows the headline, then either the lend form, the loan details (due state in amber or pink with its icon), or the out-of-service notice. The camera carries a framing square in teal at 80%, a round status pill (teal ready, amber starting, pink problem) and an amber notice when several codes are in view, which slides up 4px and fades in over 150ms.
 
 ### Navigation
-A 64px header with hairline bottom border: logo, uppercase desk title, flexible space, the volunteer-on-duty field, then outline History and Items buttons. The drawers use segmented tabs; the active tab is a raised pill.
+A 64px header with hairline bottom border: logo, uppercase desk title, flexible space, the on-duty team as up to five removable name chips (max 8.5rem each, truncating) with an add button, then outline History and Items buttons, which fold to icon-only below 1280px so a full team fits. The drawers use segmented tabs; the active tab is a raised pill.
 
 ### Drawers
 Right-side sheets on drawer navy over a 60% deep-navy scrim. They slide 40px and fade over 300ms on `cubic-bezier(0.32, 0.72, 0, 1)`; the scrim fades over 100ms.

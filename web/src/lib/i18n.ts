@@ -12,8 +12,10 @@ const en = {
   'header.onDuty': 'On duty',
   'header.nobodyOnDuty': 'Nobody on duty',
   'header.manage': '{items} & {borrowers_lc}',
-  'header.volunteerLabel': 'Volunteer on duty',
-  'header.volunteerPlaceholder': 'Your name',
+  'header.volunteerLabel': 'Volunteers on duty',
+  'header.volunteerPlaceholder': 'Name',
+  'header.addVolunteer': 'Add a volunteer on duty',
+  'header.removeVolunteer': 'Take {name} off duty',
 
   'legend.free': '{count} free',
   'legend.out': '{count} out',

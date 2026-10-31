@@ -43,19 +43,36 @@ test('import a semicolon CSV with first and last name columns', async ({ page })
   await expect(page.getByText('Franek Testowy')).toBeVisible()
 })
 
-test('the volunteer on duty is recorded on each lend', async ({ page, request }) => {
+test('everyone on duty is recorded on each lend, up to five', async ({ page, request }) => {
   await request.post('/api/borrowers', { data: { name: 'Gosia Udawana' } })
   const item = await (await request.post('/api/items', { data: { label: 'R2' } })).json()
-  await page.goto('/')
+  const before = await (await request.get('/api/settings')).json()
+  try {
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Nobody on duty' }).click()
+    const input = page.getByRole('textbox', { name: 'Add a volunteer on duty' })
+    await input.fill('Hania Dyżurna')
+    await page.keyboard.press('Enter')
+    await input.fill('Igor Zmiana')
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Escape')
+    const team = page.getByRole('group', { name: 'Volunteers on duty' })
+    await expect(team.getByText('Hania Dyżurna')).toBeVisible()
+    await expect(team.getByText('Igor Zmiana')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Volunteer on duty' }).click()
-  await page.getByRole('textbox', { name: 'Volunteer on duty' }).fill('Hania Dyżurna')
-  await page.keyboard.press('Enter')
-  await expect(page.getByRole('button', { name: 'Volunteer on duty' })).toContainText('Hania Dyżurna')
+    await page.getByRole('button', { name: `Card ${item.label}, free` }).click()
+    await page.getByPlaceholder('Type a name…').fill('gosia')
+    await page.keyboard.press('Enter')
+    await page.getByRole('button', { name: new RegExp(`Card ${item.label}, lent to Gosia`) }).click()
+    await expect(page.getByText('Handed out by Hania Dyżurna, Igor Zmiana')).toBeVisible()
 
-  await page.getByRole('button', { name: `Card ${item.label}, free` }).click()
-  await page.getByPlaceholder('Type a name…').fill('gosia')
-  await page.keyboard.press('Enter')
-  await page.getByRole('button', { name: new RegExp(`Card ${item.label}, lent to Gosia`) }).click()
-  await expect(page.getByText('Handed out by Hania Dyżurna')).toBeVisible()
+    // Going off duty removes the chip; the server caps the team at five.
+    await page.getByRole('button', { name: 'Take Igor Zmiana off duty' }).click()
+    await expect(team.getByText('Igor Zmiana')).toBeHidden()
+    const settings = await (await request.get('/api/settings')).json()
+    const tooMany = await request.put('/api/settings', { data: { ...settings, volunteers: ['A', 'B', 'C', 'D', 'E', 'F'] } })
+    expect(tooMany.status()).toBe(422)
+  } finally {
+    await request.put('/api/settings', { data: { ...before, volunteers: [] } })
+  }
 })

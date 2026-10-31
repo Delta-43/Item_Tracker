@@ -39,7 +39,7 @@ One laptop, one Docker command. The laptop's own webcam scans QR stickers stuck 
 - Loan history with filters and CSV export.
 - Overdue highlighting (time out longer than a threshold, or still out at a closing time).
 - Lost/damaged status takes an item out of service.
-- A "volunteer on duty" name is recorded with each lend and return.
+- Up to five volunteers can be on duty at once; the whole team on duty is recorded with each lend and return.
 - Interface in English and Polish.
 - Single machine only: bound to localhost, no login, no remote devices. Scanning from phones is out of scope.
 - Student names, the roster and the database never leave the device: never committed, never in the public image, never in screenshots or test data.

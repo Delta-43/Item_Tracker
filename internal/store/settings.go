@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -21,12 +22,15 @@ type Labels struct {
 
 // Settings are shared by every browser tab using the desk.
 type Settings struct {
-	Labels         map[string]Labels `json:"labels"`          // per language code
-	Language       string            `json:"language"`        // "en" or "pl"
-	Branding       string            `json:"branding"`        // "42warsaw" or "none"
-	Volunteer      string            `json:"volunteer"`       // on duty; recorded on each lend and return
-	OverdueMinutes int               `json:"overdue_minutes"` // 0 disables the duration rule
-	ClosingTime    string            `json:"closing_time"`    // "HH:MM" local time, or "" for none
+	Labels     map[string]Labels `json:"labels"`     // per language code
+	Language   string            `json:"language"`   // "en" or "pl"
+	Branding   string            `json:"branding"`   // "42warsaw" or "none"
+	Volunteers []string          `json:"volunteers"` // on duty (up to MaxVolunteers); all recorded on each lend and return
+	// LegacyVolunteer is the single name stored before teams were supported;
+	// it is moved into Volunteers when settings load and never written back.
+	LegacyVolunteer string `json:"volunteer,omitempty"`
+	OverdueMinutes  int    `json:"overdue_minutes"` // 0 disables the duration rule
+	ClosingTime     string `json:"closing_time"`    // "HH:MM" local time, or "" for none
 }
 
 // DefaultSettings fit the first deployment: access cards lent to students.
@@ -38,10 +42,14 @@ func DefaultSettings() Settings {
 		},
 		Language:       "en",
 		Branding:       "42warsaw",
+		Volunteers:     []string{},
 		OverdueMinutes: 180,
 		ClosingTime:    "",
 	}
 }
+
+// MaxVolunteers is how many people can be on duty at the desk at once.
+const MaxVolunteers = 5
 
 var clockTime = regexp.MustCompile(`^([01]\d|2[0-3]):[0-5]\d$`)
 
@@ -56,8 +64,13 @@ func (st *Settings) validate() error {
 		return bad("invalid_overdue", "The overdue limit must be between 0 minutes and 7 days")
 	case st.ClosingTime != "" && !clockTime.MatchString(st.ClosingTime):
 		return bad("invalid_closing_time", "Closing time must look like 18:30")
-	case len([]rune(st.Volunteer)) > maxName:
-		return bad("invalid_volunteer", "The volunteer name is too long")
+	case len(st.Volunteers) > MaxVolunteers:
+		return bad("too_many_volunteers", fmt.Sprintf("Up to %d people can be on duty at once", MaxVolunteers))
+	}
+	for _, v := range st.Volunteers {
+		if len([]rune(v)) > maxName {
+			return bad("invalid_volunteer", "A volunteer name is too long")
+		}
 	}
 	for lang, l := range st.Labels {
 		if lang != "en" && lang != "pl" {
@@ -89,6 +102,13 @@ func (s *Store) Settings(ctx context.Context) (Settings, error) {
 	if st.Labels == nil {
 		st.Labels = map[string]Labels{}
 	}
+	if len(st.Volunteers) == 0 && st.LegacyVolunteer != "" {
+		st.Volunteers = []string{st.LegacyVolunteer}
+	}
+	st.LegacyVolunteer = ""
+	if st.Volunteers == nil {
+		st.Volunteers = []string{}
+	}
 	for lang, l := range defaults {
 		if _, ok := st.Labels[lang]; !ok {
 			st.Labels[lang] = l
@@ -99,7 +119,8 @@ func (s *Store) Settings(ctx context.Context) (Settings, error) {
 
 // SaveSettings validates and stores the settings.
 func (s *Store) SaveSettings(ctx context.Context, st Settings) (Settings, error) {
-	st.Volunteer = cleanText(st.Volunteer)
+	st.Volunteers = cleanVolunteers(st.Volunteers)
+	st.LegacyVolunteer = ""
 	for lang, l := range st.Labels {
 		st.Labels[lang] = Labels{cleanText(l.Item), cleanText(l.Items), cleanText(l.Borrower), cleanText(l.Borrowers), cleanText(l.Desk)}
 	}
@@ -114,3 +135,22 @@ func (s *Store) SaveSettings(ctx context.Context, st Settings) (Settings, error)
 	}
 	return s.Settings(ctx)
 }
+
+// cleanVolunteers tidies spacing and drops blanks and repeats (ignoring case
+// and accents), keeping the order people were added in.
+func cleanVolunteers(names []string) []string {
+	out := []string{}
+	seen := map[string]bool{}
+	for _, n := range names {
+		n = cleanText(n)
+		if n == "" || seen[NameKey(n)] {
+			continue
+		}
+		seen[NameKey(n)] = true
+		out = append(out, n)
+	}
+	return out
+}
+
+// OnDuty is the team recorded on a lend or return, e.g. "Kasia M., Piotr".
+func (st Settings) OnDuty() string { return strings.Join(st.Volunteers, ", ") }

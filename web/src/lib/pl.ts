@@ -11,8 +11,10 @@ export const pl: Record<MessageKey, string> = {
   'header.onDuty': 'Dyżur:',
   'header.nobodyOnDuty': 'Nikt nie ma dyżuru',
   'header.manage': '{items} i {borrowers_lc}',
-  'header.volunteerLabel': 'Wolontariusz na dyżurze',
-  'header.volunteerPlaceholder': 'Twoje imię',
+  'header.volunteerLabel': 'Wolontariusze na dyżurze',
+  'header.volunteerPlaceholder': 'Imię',
+  'header.addVolunteer': 'Dodaj wolontariusza na dyżur',
+  'header.removeVolunteer': 'Zdejmij z dyżuru: {name}',
 
   'legend.free': 'Wolne: {count}',
   'legend.out': 'Wypożyczone: {count}',
