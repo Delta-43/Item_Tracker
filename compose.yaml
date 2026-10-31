@@ -9,7 +9,7 @@ services:
   item-tracker:
     image: ghcr.io/delta-43/item_tracker:latest
     container_name: item-tracker
-    restart: unless-stopped
+    restart: always
     ports:
       # Bound to 127.0.0.1 so other devices on the network cannot reach the desk.
       - "127.0.0.1:4242:4242"
