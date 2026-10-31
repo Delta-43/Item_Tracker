@@ -1,0 +1,38 @@
+# Local data: database, rosters, exports and backups never leave this machine.
+/data/
+/private/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+roster*.csv
+roster*.txt
+
+# Build output
+/bin/
+/web/dist/*
+!/web/dist/.gitkeep
+node_modules/
+*.tsbuildinfo
+
+# Test output
+/web/test-results/
+/web/playwright-report/
+/web/blob-report/
+coverage/
+
+# Local agent tooling (impeccable is installed per machine)
+/.claude/
+/.impeccable/*
+!/.impeccable/surfaces/
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.local
+*.log
