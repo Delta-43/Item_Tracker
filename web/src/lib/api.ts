@@ -15,10 +15,12 @@ export class ApiError extends Error {
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response
   try {
+    // A file goes up as it is; anything else is sent as JSON.
+    const raw = body instanceof Blob
     res = await fetch(path, {
       method,
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: body === undefined ? undefined : { 'Content-Type': raw ? 'application/octet-stream' : 'application/json' },
+      body: body === undefined ? undefined : raw ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'offline', 'Can’t reach the desk server. Is Docker running?')
@@ -55,4 +57,5 @@ export const api = {
     request<ImportResult>('POST', '/api/borrowers/import', { names, replace }),
 
   saveSettings: (settings: Settings) => request<Settings>('PUT', '/api/settings', settings),
+  restore: (backup: File) => request<{ saved: string }>('POST', '/api/restore', backup),
 }

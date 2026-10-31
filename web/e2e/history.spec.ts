@@ -88,3 +88,29 @@ test('desk settings save and the backup downloads', async ({ page, request }) =>
   expect(readFileSync(await file.path()).subarray(0, 15).toString()).toBe('SQLite format 3')
   await request.put('/api/settings', { data: { ...settings, overdue_minutes: 180, closing_time: '' } })
 })
+
+test('restoring a backup brings the desk back and refuses other files', async ({ page, request }) => {
+  const backup = Buffer.from(await (await request.get('/api/backup')).body())
+  const extra = await (await request.post('/api/items', { data: { label: 'R1' } })).json()
+
+  await page.goto('/')
+  await page.getByRole('button', { name: /& students/ }).click()
+  await page.getByRole('tab', { name: 'Desk' }).click()
+  const pick = async (file: { name: string; mimeType: string; buffer: Buffer }) => {
+    const chooser = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: 'Restore from backup' }).click()
+    await (await chooser).setFiles(file)
+  }
+
+  await pick({ name: 'notes.db', mimeType: 'application/octet-stream', buffer: Buffer.from('just some text') })
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Restore' }).click()
+  await expect(page.getByText('That file is not an Item Tracker backup')).toBeVisible()
+
+  await pick({ name: 'item-tracker-test.db', mimeType: 'application/vnd.sqlite3', buffer: backup })
+  await expect(page.getByRole('alertdialog')).toContainText('Restore item-tracker-test.db?')
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Restore' }).click()
+  await expect(page.getByText(/Desk restored\. The previous data was saved as before-restore-.*\.db/)).toBeVisible()
+
+  const items: { id: number }[] = (await (await request.get('/api/state')).json()).items
+  expect(items.some((it) => it.id === extra.id)).toBe(false)
+})
